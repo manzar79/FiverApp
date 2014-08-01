@@ -15,9 +15,30 @@ namespace FiverApp.Controllers
         private FiverDBEntities db = new FiverDBEntities();
 
         // GET: /Ingredient/
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder, string searchString)
         {
-            return View(db.Ingredients.ToList());
+            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewBag.DateSortParm = sortOrder == "Type" ? "date_desc" : "Type";
+            var ingredients = from s in db.Ingredients
+                           select s;
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                ingredients = ingredients.Where(s => s.IngredientName.ToUpper().Contains(searchString.ToUpper()));
+            }
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    ingredients = ingredients.OrderByDescending(s => s.IngredientName);
+                    break;
+                case "Type":
+                    ingredients = ingredients.OrderBy(s => s.IngredientType);
+                    break;
+       
+                default:
+                    ingredients = ingredients.OrderBy(s => s.IngredientName);
+                    break;
+            }
+            return View(ingredients.ToList());
         }
 
         // GET: /Ingredient/Details/5
